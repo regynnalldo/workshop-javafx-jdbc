@@ -3,17 +3,26 @@ package gui;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import db.DbException;
+import gui.util.Alerts;
 import gui.util.Constraints;
+import gui.util.Utils;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import model.entities.Department;
+import model.services.DepartmentService;
 
 public class DepartmentFormerController implements Initializable{
 
 	private Department entity;
+	
+	private DepartmentService service;
 	
 	@FXML
 	private TextField txtId;
@@ -34,14 +43,38 @@ public class DepartmentFormerController implements Initializable{
 		this.entity = entity;
 	}
 	
-	@FXML
-	public void onBtSaveAction() {
-		System.out.println("onBtSaveAction");
+	public void setDepartmentService(DepartmentService service) {
+		this.service = service;
 	}
 	
 	@FXML
-	public void onBtCancelAction() {
-		System.out.println("onBtCancelAction");
+	public void onBtSaveAction(ActionEvent event) {
+		if (entity == null) {
+			throw new IllegalStateException("Nome Vazio!!");
+		}
+		if (service == null) {
+			throw new IllegalStateException("Serviço Vazio!!");
+		}
+		try {
+			entity = getFormData();
+			service.saveOrUpdate(entity);
+			Utils.currencyStage(event).close();
+		}catch(DbException e) {
+			Alerts.showAlert("Erro ao Sarvar Departamento", null, e.getMessage(), AlertType.ERROR);
+		}
+	}
+	
+	private Department getFormData() {
+		Department obj = new Department();
+		
+		obj.setId(Utils.tryParseToInt(txtId.getText()));
+		obj.setName(txtName.getText());
+		return obj;
+	}
+
+	@FXML
+	public void onBtCancelAction(ActionEvent event) {
+		Utils.currencyStage(event).close();
 	}
 	
 	@Override
